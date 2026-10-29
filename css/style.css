@@ -1,0 +1,833 @@
+/* ==========================================================================
+   PERSONA 3 RELOAD - PAUSE MENU & PORTFOLIO
+   Pure Vanilla HTML5 / CSS3 / ES6
+   ========================================================================== */
+
+
+/* --------------------------------------------------------------------------
+   Font Declarations
+   -------------------------------------------------------------------------- */
+@font-face {
+  font-family: "Rodin Pro";
+  src: url("../fonts/Rodin Pro EB.otf") format("opentype");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Rodin Pro Medium";
+  src: url("../fonts/Rodin Pro DB.otf") format("opentype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Rodin Pro Bold";
+  src: url("../fonts/Rodin Pro UB.otf") format("opentype");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "NewRodin Pro";
+  src: url("../fonts/NewRodin Pro DB.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "NewRodin Pro UB";
+  src: url("../fonts/NewRodin Pro UB.otf") format("opentype");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Skip Std B";
+  src: url("../fonts/Skip Std B.otf") format("opentype");
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* --------------------------------------------------------------------------
+   Design Tokens & CSS Variables
+   -------------------------------------------------------------------------- */
+:root {
+  --color-fg: #ffffff;
+  --color-bg: #015fcc;
+  --color-bg-dark: #031f64;
+  --color-red: #ff0000;
+  --color-muted: rgba(255, 255, 255, 0.4);
+  --color-pink: #fd77d9;
+
+  --color-button-1: #16cffb;
+  --color-button-2: #7de6fd;
+  --color-button-3: #77fefc;
+
+  --color-border: #5d6a88;
+
+  --font-rodin: "Rodin Pro Bold", "Rodin Pro", sans-serif;
+  --font-rodin-medium: "Rodin Pro Medium", sans-serif;
+  --font-new-rodin: "NewRodin Pro", sans-serif;
+  --font-new-rodin-ub: "NewRodin Pro UB", "NewRodin Pro", sans-serif;
+  --font-skip: "Skip Std B", sans-serif;
+  --font-poppins: "Poppins", sans-serif;
+
+  --text-shadow-under: 0 1px 6px rgba(0, 0, 0, 0.5), 0 -1px 6px rgba(0, 0, 0, 0.5),
+    1px 0 6px rgba(0, 0, 0, 0.5), -1px 0 6px rgba(0, 0, 0, 0.5);
+  --shadow-under: 0 1px 6px rgba(0, 0, 0, 0.5), 0 -1px 6px rgba(0, 0, 0, 0.5),
+    1px 0 6px rgba(0, 0, 0, 0.5), -1px 0 6px rgba(0, 0, 0, 0.5);
+  --text-shadow-border:
+    0 2px 0 var(--color-border),
+    0 -2px 0 var(--color-border),
+    2px 0 0 var(--color-border),
+    -2px 0 0 var(--color-border),
+    -2px -2px 0 var(--color-border),
+    2px -2px 0 var(--color-border),
+    2px 2px 0 var(--color-border),
+    -2px 2px 0 var(--color-border),
+    0 1px 6px rgba(0, 0, 0, 0.5),
+    0 -1px 6px rgba(0, 0, 0, 0.5),
+    1px 0 6px rgba(0, 0, 0, 0.5),
+    -1px 0 6px rgba(0, 0, 0, 0.5);
+}
+
+/* --------------------------------------------------------------------------
+   Reset & Base Styles
+   -------------------------------------------------------------------------- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: #001233;
+  color: var(--color-fg);
+  font-family: var(--font-rodin);
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Disable main menu interaction when project S.Link screen is active */
+body.project-screen-active #menu-column,
+body.project-screen-active .hud-controls,
+body.project-screen-active .controls-guide,
+body.project-screen-active .side-number {
+  pointer-events: none !important;
+}
+
+/* --------------------------------------------------------------------------
+   Small Screen Warning (identical to original)
+   -------------------------------------------------------------------------- */
+.mobile-warning {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background-color: var(--color-bg);
+  z-index: 1000;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 2rem;
+  font-family: var(--font-skip);
+  font-weight: bold;
+  font-size: 1.5rem;
+  line-height: 1.6;
+}
+
+/* Mobile warning disabled: the site now adapts to small screens with
+   dedicated breakpoints below instead of blocking them outright. */
+
+/* --------------------------------------------------------------------------
+   Main Screen Container
+   -------------------------------------------------------------------------- */
+.p3r-main {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background-color: #001233;
+}
+
+/* --------------------------------------------------------------------------
+   Background Video (Intro & Seamless Looping)
+   Adapted for laptop screens:
+   - Anchored to bottom-left so Makoto and water surface never get cropped
+   - If aspect ratio doesn't fit vertically, crop strictly occurs at the TOP
+   - If aspect ratio fits, 100% of the video is displayed uncropped
+   -------------------------------------------------------------------------- */
+.background-video {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  object-position: left bottom;
+  pointer-events: none;
+  background-color: transparent;
+}
+
+@media (max-aspect-ratio: 16/9) {
+  .background-video {
+    width: 100vw;
+    height: calc(100vw * 9 / 16);
+    object-fit: contain;
+    object-position: left bottom;
+  }
+}
+
+.bg-video-intro {
+  z-index: 2;
+  opacity: 1;
+  transition: opacity 0.3s ease-out;
+}
+
+.bg-video-intro.fade-out {
+  opacity: 0;
+}
+
+.bg-video-loop {
+  z-index: 1;
+  opacity: 1;
+}
+
+/* --------------------------------------------------------------------------
+   Persona 3 Reload - Bright Sea Blue Loading Screen
+   -------------------------------------------------------------------------- */
+.p3r-loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: radial-gradient(circle at 85% 85%, #16cffb 0%, #0099ff 28%, #015fcc 62%, #003a8c 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-end;
+  padding: 4rem 5rem;
+  overflow: hidden;
+  user-select: none;
+  cursor: pointer;
+  transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.p3r-loading-screen.dismissed {
+  opacity: 0;
+  transform: scale(1.04);
+  pointer-events: none;
+}
+
+/* Background grid & ambient caustics lines */
+.p3r-loading-screen::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+
+
+/* Bottom Loading HUD Cluster */
+.loading-hud-bottom {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.75rem;
+  min-width: 28rem;
+  max-width: 90vw;
+}
+
+.loading-text-row {
+  display: flex;
+  align-items: baseline;
+  gap: 1.25rem;
+}
+
+.loading-title {
+  font-family: var(--font-rodin);
+  font-size: 3rem;
+  font-style: italic;
+  font-weight: 900;
+  letter-spacing: -0.06em;
+  color: #ffffff;
+  text-shadow: 0 2px 15px rgba(0, 0, 0, 0.3), 0 0 25px rgba(22, 207, 251, 0.6);
+}
+
+.loading-dots span {
+  display: inline-block;
+  animation: p3DotBlink 1.4s infinite;
+  opacity: 0.25;
+}
+
+.loading-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.loading-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes p3DotBlink {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 1; color: #ffffff; }
+}
+
+/* Slanted Atlus Progress Bar */
+.loading-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  width: 100%;
+}
+
+.loading-track {
+  flex-grow: 1;
+  height: 0.85rem;
+  background: rgba(1, 31, 100, 0.75);
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  transform: skewX(-20deg);
+  overflow: hidden;
+  position: relative;
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.6), 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.loading-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #16cffb, #ffffff);
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.9);
+  position: relative;
+  transition: width 0.12s ease-out;
+}
+
+.loading-fill::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  background-color: var(--color-red);
+  box-shadow: 0 0 8px var(--color-red);
+}
+
+.loading-percent {
+  font-family: var(--font-rodin);
+  font-size: 2.5rem;
+  font-style: italic;
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  color: #ffffff;
+  min-width: 5rem;
+  text-align: right;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4), 0 0 15px rgba(22, 207, 251, 0.6);
+}
+
+/* --------------------------------------------------------------------------
+   Menu Column & Profile Header Layout (Shifted to the side)
+   -------------------------------------------------------------------------- */
+.menu-column {
+  position: absolute;
+  top: 55%;
+  transform: translateY(-50%);
+  left: 44rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  pointer-events: auto;
+  z-index: 20;
+  will-change: transform;
+}
+
+@media (min-width: 1800px) {
+  .menu-column {
+    left: 52rem;
+  }
+}
+
+@media (max-width: 1500px) {
+  .menu-column {
+    left: 38rem;
+  }
+}
+
+@media (max-width: 1350px) {
+  .menu-column {
+    left: 31rem;
+  }
+}
+
+@media (max-width: 1100px) {
+  .menu-column {
+    left: 22rem;
+  }
+}
+
+@media (max-width: 900px) {
+  .menu-column {
+    left: 8rem;
+  }
+}
+
+@media (max-height: 860px) {
+  .menu-column {
+    transform: translateY(-50%) scale(0.86);
+    transform-origin: left center;
+  }
+}
+
+@media (max-height: 720px) {
+  .menu-column {
+    transform: translateY(-50%) scale(0.74);
+    transform-origin: left center;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Persona 3 Reload - Profile Name Header ("NEKOMARU")
+   Non-interactive decorative player banner above the menu
+   -------------------------------------------------------------------------- */
+.menu-profile-header {
+  position: fixed;
+  top: 3.8vh;
+  right: 4.5vw;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin: 0;
+  pointer-events: none;
+  user-select: none;
+  opacity: 0;
+  transform: translateX(100px) skewX(-10deg);
+  z-index: 25;
+}
+
+.profile-name-text {
+  font-family: var(--font-rodin);
+  font-size: clamp(2.4rem, 2.8vw, 3.4rem);
+  font-style: italic;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  color: #ffffff;
+  text-transform: uppercase;
+  line-height: 1;
+  text-shadow: 
+    0 3px 18px rgba(0, 0, 0, 0.8),
+    0 0 25px rgba(22, 207, 251, 0.75),
+    0 0 50px rgba(0, 153, 255, 0.5);
+}
+
+.profile-accent-line {
+  margin-top: 0.65rem;
+  height: 4px;
+  width: clamp(220px, 20vw, 320px);
+  background: linear-gradient(270deg, #16cffb 0%, #0099ff 70%, transparent 100%);
+  box-shadow: 0 0 12px rgba(22, 207, 251, 0.9), 0 0 24px rgba(0, 153, 255, 0.6);
+  border-radius: 2px;
+}
+
+/* --------------------------------------------------------------------------
+   Options List Layout (Tighter Spacing & Entrance Animation)
+   -------------------------------------------------------------------------- */
+.options-list {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  pointer-events: auto;
+  z-index: 20;
+}
+
+/* Stacking overlap between SVG items (closer together) */
+.option-item {
+  position: relative;
+  margin-top: -7.7rem; /* Closer vertical spacing */
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(110px) skewX(-8deg);
+  transition: z-index 0s linear;
+  will-change: transform, opacity;
+}
+
+.option-item:first-of-type {
+  margin-top: 0;
+}
+
+.option-item.selected {
+  z-index: 15 !important;
+}
+
+.option-hitbox {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 100%;
+  height: 4.4rem;
+  outline: none;
+  pointer-events: auto;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  z-index: 10;
+}
+
+/* --------------------------------------------------------------------------
+   Entrance Animation on Menu Column (Cascading Stagger)
+   -------------------------------------------------------------------------- */
+.menu-profile-header.menu-entered,
+.menu-column.menu-entered .menu-profile-header {
+  animation: p3rMenuEntrance 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.08s forwards;
+}
+
+.menu-column.menu-entered .option-item:nth-of-type(1) {
+  animation: p3rMenuEntrance 0.52s cubic-bezier(0.16, 1, 0.3, 1) 0.14s forwards;
+}
+
+.menu-column.menu-entered .option-item:nth-of-type(2) {
+  animation: p3rMenuEntrance 0.52s cubic-bezier(0.16, 1, 0.3, 1) 0.20s forwards;
+}
+
+.menu-column.menu-entered .option-item:nth-of-type(3) {
+  animation: p3rMenuEntrance 0.52s cubic-bezier(0.16, 1, 0.3, 1) 0.26s forwards;
+}
+
+.menu-column.menu-entered .option-item:nth-of-type(4) {
+  animation: p3rMenuEntrance 0.52s cubic-bezier(0.16, 1, 0.3, 1) 0.32s forwards;
+}
+
+@keyframes p3rMenuEntrance {
+  0% {
+    opacity: 0;
+    transform: translateX(100px) skewX(-10deg) scale(0.96);
+  }
+  70% {
+    opacity: 1;
+    transform: translateX(-6px) skewX(2deg) scale(1.01);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) skewX(0) scale(1);
+  }
+}
+
+.option-svg {
+  cursor: pointer;
+  outline: none;
+  pointer-events: none;
+  transform-origin: 25% center;
+  transition: transform 0.15s ease-out;
+  overflow: visible;
+}
+
+/* --------------------------------------------------------------------------
+   SVG Option Item Text & Shapes Styling
+   -------------------------------------------------------------------------- */
+.option-text {
+  font-family: var(--font-rodin);
+  font-size: 4.8rem;
+  font-style: italic;
+  font-weight: 900;
+  letter-spacing: -0.14em;
+  transform-origin: 25% center;
+  transition: transform 0.12s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Cyan button colors when deselected */
+.fill-button-1 {
+  fill: var(--color-button-1);
+}
+.fill-button-2 {
+  fill: var(--color-button-2);
+}
+.fill-button-3 {
+  fill: var(--color-button-3);
+}
+
+.fill-pink {
+  fill: var(--color-pink);
+}
+
+.fill-red {
+  fill: var(--color-red);
+}
+
+.fill-fg {
+  fill: var(--color-fg);
+}
+
+/* Visibility toggles for selection */
+.option-item .selector-group {
+  display: none;
+}
+
+.option-item .masked-red-group {
+  display: none;
+}
+
+.option-item.selected .selector-group {
+  display: block;
+}
+
+.option-item.selected .masked-red-group {
+  display: block;
+}
+
+/* Bounce animation on select */
+.option-item.selected .option-text {
+  animation: p3TextBounce 0.22s cubic-bezier(0.175, 0.885, 0.32, 1.3) forwards;
+}
+
+@keyframes p3TextBounce {
+  0% {
+    transform: scale(1);
+  }
+  60% {
+    transform: scale(1.22);
+  }
+  100% {
+    transform: scale(1.15);
+  }
+}
+
+/* Persona 3 Pulse on Pink Selector background */
+.pulse-anim {
+  animation: p3SelectorPulse 0.9s infinite ease-in-out;
+}
+
+@keyframes p3SelectorPulse {
+  0%, 75% {
+    transform: scale(1);
+  }
+  85% {
+    transform: scale(1.06);
+  }
+  92%, 100% {
+    transform: scale(1);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Side Watermark Number (e.g., 01 - 09)
+   -------------------------------------------------------------------------- */
+.side-number {
+  position: absolute;
+  left: -4.5rem;
+  top: -18rem;
+  font-size: 37vh;
+  font-family: var(--font-rodin);
+  font-style: italic;
+  font-weight: 900;
+  letter-spacing: -0.2em;
+  color: var(--color-muted);
+  transform: rotate(90deg);
+  pointer-events: none;
+  user-select: none;
+  z-index: 10;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+/* --------------------------------------------------------------------------
+   Bottom-Right Command & Controls HUD
+   -------------------------------------------------------------------------- */
+.hud-controls {
+  position: absolute;
+  bottom: 1.5rem;
+  right: 2.25rem;
+  z-index: 25;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.buttons-row {
+  display: flex;
+  gap: 1.25rem;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.control-item {
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.control-key {
+  border-radius: 9999px;
+  min-width: 1.85rem;
+  height: 1.55rem;
+  padding: 0 0.5rem;
+  font-family: var(--font-rodin), sans-serif;
+  font-weight: 900;
+  background-color: rgba(3, 31, 100, 0.9);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  outline: 2px solid var(--color-border);
+  font-size: 0.75rem;
+  letter-spacing: -0.01em;
+  border: 2px solid var(--color-fg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-fg);
+  text-transform: uppercase;
+}
+
+.control-text {
+  text-shadow:
+    0 1px 0 var(--color-border),
+    0 -1px 0 var(--color-border),
+    1px 0 0 var(--color-border),
+    -1px 0 0 var(--color-border),
+    -1px -1px 0 var(--color-border),
+    1px -1px 0 var(--color-border),
+    1px 1px 0 var(--color-border),
+    -1px 1px 0 var(--color-border),
+    0 1px 4px rgba(0, 0, 0, 0.5);
+  font-size: 1.15rem;
+  font-family: var(--font-new-rodin), sans-serif;
+  letter-spacing: -0.02em;
+  font-style: italic;
+  font-weight: 800;
+  color: var(--color-fg);
+}
+
+/* --------------------------------------------------------------------------
+   Portfolio Modal (Persona 3 Glassmorphism HUD Style)
+   -------------------------------------------------------------------------- */
+.portfolio-modal {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(3, 20, 70, 0.88);
+  backdrop-filter: blur(6px);
+  z-index: 300;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.portfolio-modal.active {
+  display: flex;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.portfolio-modal.circle-transitioning {
+  display: flex !important;
+  opacity: 1 !important;
+  pointer-events: none !important;
+  will-change: clip-path;
+}
+
+.modal-card {
+  width: 58rem;
+  max-width: 90vw;
+  max-height: 85vh;
+  background: linear-gradient(135deg, rgba(1, 95, 204, 0.95), rgba(3, 31, 100, 0.98));
+  border: 3px solid var(--color-fg);
+  outline: 4px solid var(--color-border);
+  border-radius: 0.75rem;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(22, 207, 251, 0.3);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transform: scale(0.9) translateY(20px);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.portfolio-modal.active .modal-card {
+  transform: scale(1) translateY(0);
+}
+
+.modal-header {
+  background-color: #ffffff;
+  color: var(--color-bg-dark);
+  padding: 1.25rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 3px solid var(--color-red);
+}
+
+.modal-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.modal-tag {
+  background-color: var(--color-red);
+  color: #ffffff;
+  font-family: var(--font-skip);
+  font-size: 1rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 0.25rem;
+  font-style: normal;
+  letter-spacing: 0.05em;
+}
+
+.modal-title {
+  font-size: 2.25rem;
+  font-family: var(--font-rodin);
+  font-weight: 900;
+  font-style: italic;
+  letter-spacing: -0.05em;
+  color: var(--color-bg-dark);
+}
+
+.modal-close-btn {
+  background: transparent;
+  border: 2px solid var(--color-bg-dark);
+  border-radius: 9999px;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-family: var(--font-rodin);
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: var(--color-bg-dark);
+  transition: all 0.15s ease;
+}
+
+.modal-close-btn:hover {
+  background-color: var(--color-red);
+  color: #ffffff;
+  border-color: var(--color-red);
+}
+
+.modal-body {
+  padding: 2.5rem;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  font-family: var(--font-new-rodin);
+  color: #ffffff;
+  line-height: 1.6;
+}
+
+.modal-content-grid {
+  display: grid;
+  grid-template-columns: repea
